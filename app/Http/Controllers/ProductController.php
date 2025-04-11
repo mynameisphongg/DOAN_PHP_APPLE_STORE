@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -35,4 +36,27 @@ class ProductController extends Controller
         Product::destroy($id);
         return response()->json(['message' => 'Product deleted']);
     }
+
+    public function getProductsByCategory($categoryName)
+{
+    // Kiểm tra danh mục có tồn tại không
+    $category = Category::where('name', $categoryName)->first();
+    if (!$category) {
+        return response()->json(['message' => 'Danh mục không tồn tại'], 404);
+    }
+
+    // Lấy danh sách sản phẩm thuộc danh mục đó
+    $products = Product::where('category_id', $category->id)->get();
+
+    // Kiểm tra nếu không có sản phẩm nào
+    if ($products->isEmpty()) {
+        return response()->json(['message' => 'Không có sản phẩm nào trong danh mục này'], 200);
+    }
+
+    return response()->json($products);
+}
+
+    
+
+
 }

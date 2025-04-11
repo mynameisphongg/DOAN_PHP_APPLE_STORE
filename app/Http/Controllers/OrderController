@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Order;
+use App\Models\OrderItem;
+
+class OrderController extends Controller
+{
+    // Lấy danh sách đơn hàng (GET)
+    public function index()
+    {
+        $orders = Order::with('orderItems')->get();
+        return response()->json(['success' => true, 'orders' => $orders]);
+    }
+
+    // Lưu đơn hàng mới (POST)
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'address' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'payment_method' => 'required|string',
+            'cart' => 'required|array|min:1',
+            'cart.*.product_id' => 'required|integer',
+            'cart.*.quantity' => 'required|integer|min:1',
+            'cart.*.price' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            $total_price = collect($validated['cart'])->sum(fn($item) => $item['quantity'] * $item['price']);
+
+            $order = Order::create([
+                'name' => $validated['name'],
+                'phone' => $validated['phone'],
+                'address' => $validated['address'],
+                'email' => $validated['email'],
+                'payment_method' => $validated['payment_method'],
+                'total_price' => $total_price,
+            ]);
+
+            foreach ($validated['cart'] as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                ]);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Đơn hàng đã được tạo!', 'order_id' => $order->id]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Lỗi khi lưu đơn hàng: ' . $e->getMessage()], 500);
+        }
+    }
+}
