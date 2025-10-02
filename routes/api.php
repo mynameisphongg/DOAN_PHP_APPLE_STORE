@@ -7,6 +7,8 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VNPayController;
+
+use App\Http\Controllers\MoMoController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -48,3 +50,8 @@ Route::get('/vnpay-return', [VNPayController::class, 'vnpayReturn']);
 
 Route::get('/products/category/{category}', [ProductController::class, 'getProductsByCategory']);
 Route::get('/api/products/category/{categoryName}', [ProductController::class, 'getProductsByCategory']);
+
+
+Route::post('/momo-payment', [MoMoController::class, 'createPayment']);
+Route::get('/momo-return', [MoMoController::class, 'paymentReturn']);
+Route::post('/momo-ipn', [MoMoController::class, 'ipn']);
